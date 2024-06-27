@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:music_player/components/custom_drawer.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -13,10 +14,10 @@ class _HomeState extends State<Home> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: Center(child: Text("P L A Y L I S T")),
+        title: Text("P L A Y L I S T"),
       ),
-      drawer: Drawer(),
-      body: Container(color: Colors.red),
+      drawer: CustomDrawer(),
+      body: Container(),
     );
   }
 }
