@@ -25,13 +25,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: EdgeInsets.all(24),
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(25),
-                color: Theme.of(context).colorScheme.primary,
-                // boxShadow: [
-                //   BoxShadow(
-                //       offset: Offset(1, 4),
-                //       color: Theme.of(context).colorScheme.inversePrimary,
-                //       blurRadius: 8)
-                // ],
+                color: Theme.of(context).colorScheme.secondary,
+                boxShadow: [
+                  BoxShadow(
+                      offset: Offset(1, 4),
+                      color: Theme.of(context).colorScheme.primary,
+                      blurRadius: 8)
+                ],
             ),
             child: Row(
               children: [
