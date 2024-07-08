@@ -1,4 +1,4 @@
-class Songs {
+class CustomSongModel {
   final String songName;
   final String songArtist;
   final String songAlbumArt;
@@ -6,7 +6,7 @@ class Songs {
   final String songLastPlaytime;
   final String songPath;
 
-  Songs(
+  CustomSongModel(
       {required this.songName,
       required this.songArtist,
       required this.songAlbumArt,

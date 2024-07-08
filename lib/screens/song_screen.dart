@@ -34,14 +34,27 @@ class _SongScreenState extends State<SongScreen> {
           widget.song.data); // Schemes: (https: | file: | asset: )
       player.play();
 
+
       setState(() {
         isPlaying = true;
       });
     }
   }
 
+  //Pause Running Track
+
+  //Skip Forward
+
+  //Skip Back
+
+  //Next Track
+
+  //Back Track
+
+
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: Center(
@@ -74,7 +87,7 @@ class _SongScreenState extends State<SongScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       QueryArtworkWidget(
-                        controller: widget.audioQuery,
+                        // controller: widget.audioQuery,
                         id: widget.song.id,
                         type: ArtworkType.AUDIO,
                         nullArtworkWidget: Icon(
@@ -82,25 +95,28 @@ class _SongScreenState extends State<SongScreen> {
                           size: 250,
                         ),
                       ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Column(
-                            children: [
-                              Text(
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width*0.85
+                        ),
+                        child: Column(
+                          children: [
+                            SizedBox(
+                              height:45,
+                              child: Text(
                                 widget.song.title,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 20),
                               ),
-                              Text(
-                                  widget.song.artist == '<unknown>'
-                                      ? "Unknown Artist"
-                                      : widget.song.artist ?? "Unknown Artist",
-                                  overflow: TextOverflow.ellipsis),
-                            ],
-                          ),
-                        ],
+                            ),
+                            Text(
+                                widget.song.artist == '<unknown>'
+                                    ? "Unknown Artist"
+                                    : widget.song.artist ?? "Unknown Artist",
+                                overflow: TextOverflow.ellipsis),
+                          ],
+                        ),
                       )
                     ],
                   ),
