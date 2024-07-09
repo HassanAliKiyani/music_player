@@ -1,6 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:music_player/components/custom_drawer.dart';
+import 'package:music_player/components/now_playing_bar.dart';
 import 'package:music_player/models/playlistProvider.dart';
 import 'package:music_player/screens/song_screen.dart';
 import 'package:on_audio_query/on_audio_query.dart';
@@ -17,44 +17,33 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  // Main method.
-  // final OnAudioQuery audioQuery = OnAudioQuery();
-
-  // Indicate if application has permission to the library.
-  bool? _hasPermission;
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   LogConfig logConfig = LogConfig(logType: LogType.DEBUG);
-  //   audioQuery.setLogConfig(logConfig);
-  //   // Check and request for permission.
-  //   checkAndRequestPermissions();
-  // }
+  late OnAudioQuery audioQuery;
+  late Future<bool> _permissionFuture;
 
   @override
   void initState() {
-    // Check and request for permission.
-    Provider.of<PlaylistProvider>(context, listen: false)
-        .initiatePlaylistProvider();
-
-
     super.initState();
+    audioQuery =
+        Provider.of<PlaylistProvider>(context, listen: false).audioController;
+    _permissionFuture = checkAndRequestPermissions();
   }
 
-  void refreshSongs() {
-    Provider.of<PlaylistProvider>(context, listen: false).fetchAllSongs();
+  Future<bool> checkAndRequestPermissions({bool retry = false}) async {
+    bool hasPermission = await audioQuery.checkAndRequest(
+      retryRequest: retry,
+    );
+
+    if (hasPermission) {
+      refreshSongs();
+    }
+
+    return hasPermission;
   }
 
-  // checkAndRequestPermissions({bool retry = false}) async {
-  //   // The param 'retryRequest' is false, by default.
-  //   _hasPermission = await audioQuery.checkAndRequest(
-  //     retryRequest: retry,
-  //   );
-  //
-  //   // Only call update the UI if application has all required permissions.
-  //   _hasPermission ? setState(() {}) : null;
-  // }
+  Future<void> refreshSongs() async {
+    await Provider.of<PlaylistProvider>(context, listen: false).fetchAllSongs();
+    setState(() {}); // Trigger a rebuild after fetching songs
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,55 +53,94 @@ class _HomeState extends State<Home> {
         title: Text("P L A Y L I S T"),
       ),
       drawer: CustomDrawer(),
-      body: Center(
-        child: FutureBuilder<bool>(
-          future: Provider.of<PlaylistProvider>(context,listen: false).checkAndRequestPermissions(),
-          builder: (context,snapshot){
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator();
-            } else if (snapshot.hasError) {
-              return Text('Error: ${snapshot.error}');
-            }
-            if(snapshot.data == false){
-              return noAccessToLibraryWidget();
-            }
-            Provider.of<PlaylistProvider>(context, listen: false).fetchAllSongs();
+      body: FutureBuilder<bool>(
+        future: _permissionFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}"));
+          }
+
+          if (snapshot.data == true) {
             return displaySongsProvider();
-          },
-        )
-        // child: !_hasPermission!
-        //     ? noAccessToLibraryWidget()
-        //     : displaySongsProvider(),
+          } else {
+            return noAccessToLibraryWidget();
+          }
+        },
       ),
     );
   }
 
-  Consumer<PlaylistProvider> displaySongsProvider() {
-    return Consumer<PlaylistProvider>(builder: (context, value, child) {
-              if (value.allSongs.length == 0) {
-                return const Text("Nothing found!");
-              }
-              List<SongModel> songs = value.allSongs;
-              return ListView.builder(
+  Widget displaySongsProvider() {
+    return Consumer<PlaylistProvider>(
+      builder: (context, value, child) {
+       
+        List<SongModel> songs = value.allSongs;
+        return Column(
+          children: [
+          //   Padding(
+          //   padding: const EdgeInsets.all(8.0),
+          //   child: TextField(
+          //     onChanged: (query) {
+          //       if(query.isEmpty){
+          //         value.fetchAllSongs();
+          //       }
+          //       else{
+          //       value.searchSong(query);
+          //       }
+          //     },
+              
+          //     onSubmitted:(query) {
+          //       if(query.isEmpty){
+          //         value.fetchAllSongs();
+          //       }
+          //       else{
+          //       value.searchSong(query);
+          //       }
+          //     },
+          //     decoration: InputDecoration(
+          //       labelText: 'Search',
+          //       border: OutlineInputBorder(),
+          //       prefixIcon: Icon(Icons.search),
+          //     ),
+          //   ),
+          // ),
+
+            Expanded(
+              child: value.allSongs.isEmpty?Center(child: Text("Nothing found!")): ListView.builder(
                 itemCount: songs.length,
                 itemBuilder: (context, index) {
                   SongModel song = songs[index];
-                  print(song.toString());
+                  // print(song.toString());
+                  // print("oollaaaooollaaallaaa");
                   return customSongTile(
                     songName: song.title,
                     artistName: song.artist ?? "Unknown Artist",
                     onTap: () {
-                      print("router->push->Playlist->SongScreen");
+                      value.currentSongIndex = index;
                       Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => SongScreen(
-                                    song: song,
-                                    audioQuery: value.audioController,
-                                  )));
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SongScreen(),
+                        ),
+                      );
                     },
-                    trackLength:
-                        formatMilliseconds(song.duration ?? 0).toString(),
+                    trailing: Column(
+                      children: [
+                        index == value.currentSongIndex
+                            ? GestureDetector(
+                                onTap: value.pauseOrResume,
+                                child: Icon(
+                                    value.isPlaying ? Icons.pause : Icons.play_arrow))
+                            : SizedBox.shrink(),
+                        index == value.currentSongIndex
+                            ? Text(formatMilliseconds(value.currentDuration.inMilliseconds ?? 0).toString())
+                            :Text(formatMilliseconds(song.duration ?? 0).toString())
+                      ],
+                    ),
                     leading: QueryArtworkWidget(
                       controller: value.audioController,
                       id: song.id,
@@ -121,54 +149,14 @@ class _HomeState extends State<Home> {
                     ),
                   );
                 },
-              );
-            });
+              ),
+            ),
+            NowPlayingBar()
+          ],
+        );
+      },
+    );
   }
-
-  // FutureBuilder<List<SongModel>> displaySongsFuture(BuildContext context) {
-  //   return FutureBuilder<List<SongModel>>(
-  //       future: Provider.of<PlaylistProvider>(context).songs(),
-  //       builder: (context, item) {
-  //         if (item.hasError) {
-  //           return Text(item.error.toString());
-  //         }
-  //         // Waiting content.
-  //         if (item.data == null) {
-  //           return const CircularProgressIndicator();
-  //         }
-  //         // 'Library' is empty.
-  //         if (item.data!.isEmpty) return const Text("Nothing found!");
-  //         List<SongModel> songs = item.data!;
-  //         return ListView.builder(
-  //           itemCount: songs.length,
-  //           itemBuilder: (context, index) {
-  //             SongModel song = songs[index];
-  //             print(song.toString());
-  //             return customSongTile(
-  //               songName: song.title,
-  //               artistName: song.artist ?? "Unknown Artist",
-  //               onTap: () {
-  //                 print("router->push->Playlist->SongScreen");
-  //                 Navigator.push(
-  //                     context,
-  //                     MaterialPageRoute(
-  //                         builder: (context) => SongScreen(
-  //                               song: song,
-  //                               audioQuery: audioQuery,
-  //                             )));
-  //               },
-  //               trackLength: formatMilliseconds(song.duration ?? 0).toString(),
-  //               leading: QueryArtworkWidget(
-  //                 controller: audioQuery,
-  //                 id: song.id,
-  //                 type: ArtworkType.AUDIO,
-  //                 nullArtworkWidget: nullArtWorkWidget(),
-  //               ),
-  //             );
-  //           },
-  //         );
-  //       });
-  // }
 
   Widget nullArtWorkWidget() {
     return Container(
@@ -179,51 +167,63 @@ class _HomeState extends State<Home> {
         border: Border.all(color: Theme.of(context).colorScheme.primary),
         boxShadow: [
           BoxShadow(
-              offset: Offset(1, 4),
-              color: Theme.of(context).colorScheme.primary,
-              blurRadius: 8)
+            offset: Offset(1, 4),
+            color: Theme.of(context).colorScheme.primary,
+            blurRadius: 8,
+          )
         ],
       ),
-      child: const Icon(
-        Icons.music_note,
-      ),
+      child: const Icon(Icons.music_note),
     );
   }
 
   Widget noAccessToLibraryWidget() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.tertiary,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Theme.of(context).colorScheme.surface),
-        boxShadow: [
-          BoxShadow(
+    return Center(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.tertiary,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Theme.of(context).colorScheme.surface),
+          boxShadow: [
+            BoxShadow(
               offset: Offset(1, 4),
               color: Theme.of(context).colorScheme.primary,
-              blurRadius: 8)
-        ],
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            "Application doesn't have access to the library",
-            style: TextStyle(fontSize: 14),
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.surface,
-                elevation: 8),
-            onPressed: () => {Provider.of(context,listen: false).checkAndRequestPermissions(retry: true)},
-            child: Text(
-              "Allow",
-              style: TextStyle(
-                  color: Theme.of(context).colorScheme.inversePrimary),
+              blurRadius: 8,
+            )
+          ],
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              "Application doesn't have access to the library",
+              style: TextStyle(fontSize: 14),
             ),
-          ),
-        ],
+            const SizedBox(height: 10),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                elevation: 8,
+              ),
+              onPressed: () async {
+                bool hasPermission =
+                    await checkAndRequestPermissions(retry: true);
+                if (hasPermission) {
+                  setState(() {
+                    _permissionFuture = Future.value(true);
+                  });
+                }
+              },
+              child: Text(
+                "Allow",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
