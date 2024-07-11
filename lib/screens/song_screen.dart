@@ -61,7 +61,8 @@ class _SongScreenState extends State<SongScreen> {
                         ),
                         ConstrainedBox(
                           constraints: BoxConstraints(
-                            minWidth:  MediaQuery.of(context).size.width * 0.85,
+                              minWidth:
+                                  MediaQuery.of(context).size.width * 0.85,
                               maxWidth:
                                   MediaQuery.of(context).size.width * 0.85),
                           child: Column(
@@ -95,71 +96,94 @@ class _SongScreenState extends State<SongScreen> {
                     children: [
                       //Controllers
                       Padding(
+                        padding:
+                            const EdgeInsets.only(left: 16, right: 16, top: 35),
+                        child: SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            trackHeight: 2,
+                            thumbShape: const RoundSliderThumbShape(
+                                enabledThumbRadius: 6),
+                            overlayShape: const RoundSliderOverlayShape(
+                                overlayRadius: 10),
+                            activeTrackColor: Colors.green,
+                            inactiveTrackColor:
+                                Theme.of(context).colorScheme.inversePrimary,
+                            thumbColor: Colors.green,
+                            overlayColor: Colors.green.withOpacity(0.2),
+                          ),
+                          child: Slider(
+                            min: 0,
+                            max: value.totalDuration.inSeconds.toDouble(),
+                            value: value.currentDuration.inSeconds.toDouble(),
+                            onChanged: (double newValue) {},
+                            onChangeEnd: (double newValue) {
+                              value.seek(Duration(seconds: newValue.toInt()));
+                            },
+                          ),
+                        ),
+                      ),
+                      Padding(
                         padding: const EdgeInsets.only(
-                            left: 40.0, right: 40, top: 30, bottom: 15),
+                            left: 24, right: 24, bottom: 35),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(formatMilliseconds(value.currentDuration.inMilliseconds)),
-                            Icon(Icons.shuffle),
-                            Icon(Icons.repeat),
+                            Text(formatMilliseconds(
+                                value.currentDuration.inMilliseconds)),
+                            Spacer(),
                             Text(formatMilliseconds(currentSong.duration ?? 0)),
                           ],
                         ),
                       ),
-                      //Song track
-                      SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                            thumbShape:
-                                RoundSliderThumbShape(enabledThumbRadius: 6)),
-                        child: Slider(
-                            min: 0,
-                            max: value.totalDuration.inSeconds.toDouble(),
-                            activeColor: Colors.green,
-                            value: value.currentDuration.inSeconds.toDouble(),
-                            onChanged: (double double) {
-
-                            },
-                            onChangeEnd: (double double){
-                              value.seek(Duration(seconds: double.toInt()));
-                            },
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.shuffle,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .inversePrimary),
+                            onPressed: () {},
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.skip_previous,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .inversePrimary,
+                                size: 36),
+                            onPressed: value.playPreviousTrack,
+                          ),
+                          CircleAvatar(
+                            radius: 32,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.secondary,
+                            child: IconButton(
+                              icon: Icon(
+                                  value.isPlaying
+                                      ? Icons.pause
+                                      : Icons.play_arrow,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .inversePrimary,
+                                  size: 32),
+                              onPressed: value.pauseOrResume,
                             ),
-                      ),
-                      //Playback controllers
-                      Padding(
-                        padding: const EdgeInsets.all(15.0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                                child: GestureDetector(
-                              onTap: value.playPreviousTrack,
-                              child: CustomShadowBox(
-                                child: Icon(Icons.skip_previous),
-                              ),
-                            )),
-                            SizedBox(
-                              width: 20,
-                            ),
-                            Expanded(
-                                flex: 2,
-                                child: GestureDetector(
-                                  onTap: value.pauseOrResume,
-                                  child: CustomShadowBox(
-                                    child: Icon(value.isPlaying? Icons.pause: Icons.play_arrow),
-                                  ),
-                                )),
-                            SizedBox(
-                              width: 20,
-                            ),
-                            Expanded(
-                                child: GestureDetector(
-                              onTap: value.playNextTrack,
-                              child: CustomShadowBox(
-                                child: Icon(Icons.skip_next),
-                              ),
-                            ))
-                          ],
-                        ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.skip_next,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .inversePrimary,
+                                size: 36),
+                            onPressed: value.playNextTrack,
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.repeat,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .inversePrimary),
+                            onPressed: () {},
+                          ),
+                        ],
                       ),
                     ],
                   ),

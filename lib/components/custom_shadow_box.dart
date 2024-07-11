@@ -1,28 +1,92 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
-class CustomShadowBox extends StatelessWidget {
-  Widget child;
-  CustomShadowBox({super.key,required this.child});
+class CustomShadowBox extends StatefulWidget {
+  final Widget child;
+  const CustomShadowBox({Key? key, required this.child}) : super(key: key);
+
+  @override
+  _CustomShadowBoxState createState() => _CustomShadowBoxState();
+}
+
+class _CustomShadowBoxState extends State<CustomShadowBox> with SingleTickerProviderStateMixin {
+  final List<Color> colors = [
+    Colors.orange,
+    Colors.green,
+    Colors.purple,
+    Colors.yellow,
+    Colors.red,
+    Colors.pink,
+    Colors.teal,
+    Colors.yellowAccent
+  ];
+
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  int currentColorIndex = 0;
+  int nextColorIndex = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 5),
+      vsync: this,
+    );
+
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
+
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        setState(() {
+          currentColorIndex = nextColorIndex;
+          nextColorIndex = (nextColorIndex + 1) % colors.length;
+        });
+        _controller.reverse();
+      } else if (status == AnimationStatus.dismissed) {
+        _controller.forward();
+      }
+    });
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-              offset: Offset(-4, -4),
-              color: Theme.of(context).colorScheme.tertiary,
-              blurRadius: 15),
-          BoxShadow(
-              offset: Offset(4, 4),
-              color: Colors.grey.shade500,
-              blurRadius: 15)
-        ],
-      ),
-      padding: EdgeInsets.all(12),
-      child: child,
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                offset: const Offset(-4, -4),
+                color: Color.lerp(colors[currentColorIndex], colors[nextColorIndex], _animation.value)!,
+                blurRadius: 15,
+              ),
+              BoxShadow(
+                offset: const Offset(4, 4),
+                color: Color.lerp(colors[currentColorIndex], colors[nextColorIndex], _animation.value)!,
+                blurRadius: 15,
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(12),
+          child: child,
+        );
+      },
+      child: widget.child,
     );
   }
 }

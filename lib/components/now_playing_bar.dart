@@ -14,9 +14,7 @@ class NowPlayingBar extends StatelessWidget {
         if (playlistProvider.currentSongIndex == null) {
           return SizedBox.shrink(); // No song playing, return empty widget
         }
-
-        SongModel currentSong =
-            playlistProvider.allSongs[playlistProvider.currentSongIndex!];
+        SongModel currentSong = playlistProvider.allSongs[playlistProvider.currentSongIndex!];
 
         return GestureDetector(
           onTap: () {

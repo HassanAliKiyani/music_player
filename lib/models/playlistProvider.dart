@@ -5,6 +5,7 @@ import 'package:audioplayers/audioplayers.dart';
 
 class PlaylistProvider extends ChangeNotifier {
   List<SongModel> _allSongs = [];
+  List<SongModel> _filteredList = [];
   final OnAudioQuery audioQuery = OnAudioQuery();
   int? _currentSongIndex;
 
@@ -15,6 +16,7 @@ class PlaylistProvider extends ChangeNotifier {
   bool get isPlaying => _isPlaying;
   Duration get currentDuration => _currentDuration;
   Duration get totalDuration => _totalDuration;
+  List<SongModel> get filteredList => _filteredList;
 
   //Setters
   set currentSongIndex(int? index) {
@@ -45,22 +47,28 @@ class PlaylistProvider extends ChangeNotifier {
 
   void searchSong(String query) {
     if (query.isEmpty) {
-      fetchAllSongs();
+      _filteredList = _allSongs;
+      notifyListeners();
       return;
     } else {
-      _allSongs = _allSongs.where((song) {
+      // print("this is called");
+      _filteredList = _allSongs.where((song) {
         return song.title.toLowerCase().contains(query.toLowerCase()) ||
-               (song.artist?.toLowerCase().contains(query.toLowerCase()) ?? false);
+            (song.artist?.toLowerCase().contains(query.toLowerCase()) ?? false);
       }).toList();
+      notifyListeners();
     }
-    notifyListeners();
   }
   //Play Song
 
   void play() async {
     String pathToPlay = _allSongs[_currentSongIndex!].data!;
     await _audioPlayer.stop();
-    await _audioPlayer.play(DeviceFileSource(pathToPlay));
+    try {
+      await _audioPlayer.play(DeviceFileSource(pathToPlay));
+    } catch (e) {
+      print("Error playing audio: $e");
+    }
     _isPlaying = true;
     notifyListeners();
   }
@@ -104,9 +112,6 @@ class PlaylistProvider extends ChangeNotifier {
 
   //Previous Track
   void playPreviousTrack() async {
-    print("Play previous called");
-    print(_currentSongIndex!);
-    print(_allSongs.length);
     if (_currentDuration.inSeconds < 3) {
       await _audioPlayer.seek(Duration.zero);
     } else {
@@ -146,24 +151,22 @@ class PlaylistProvider extends ChangeNotifier {
     audioQuery.setLogConfig(logConfig);
   }
 
-  Future<bool> checkAndRequestPermissions({bool retry = false}) async {
-    // The param 'retryRequest' is false, by default.
-    return await audioQuery.checkAndRequest(
-      retryRequest: retry,
-    );
-  }
 
   fetchAllSongs({SongSortType sort = SongSortType.TITLE}) async {
-    _allSongs = await audioQuery.querySongs(
-      sortType: sort,
-      orderType: OrderType.ASC_OR_SMALLER,
-      uriType: UriType.EXTERNAL,
-      ignoreCase: true,
-    );
-    _allSongs = _allSongs.where((song) {
-      // Check if duration is not null and greater than or equal to 2 minutes
-      return song.duration != null && song.duration! >= 120000;
-    }).toList();
+   
+      _allSongs = await audioQuery.querySongs(
+        sortType: sort,
+        orderType: OrderType.ASC_OR_SMALLER,
+        uriType: UriType.EXTERNAL,
+        ignoreCase: false,
+      );
+      _allSongs = _allSongs.where((song) {
+        // Check if duration is not null and greater than or equal to 2 minutes
+        return song.duration != null && song.duration! >= 120000;
+      }).toList();
+      _filteredList = _allSongs;
+      notifyListeners();
+    
   }
 
   fetchFavouriteSongs() async {
