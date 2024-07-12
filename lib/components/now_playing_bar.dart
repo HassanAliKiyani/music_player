@@ -9,12 +9,16 @@ class NowPlayingBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<PlaylistProvider>(
-      builder: (context, playlistProvider, child) {
-        if (playlistProvider.currentSongIndex == null) {
+    final playlistProvider = Provider.of<PlaylistProvider>(context, listen: false);
+
+    return ValueListenableBuilder<int?>(
+      valueListenable: playlistProvider.currentSongIndexNotifier,
+      builder: (context, currentSongIndex, child) {
+        if (currentSongIndex == null) {
           return SizedBox.shrink(); // No song playing, return empty widget
         }
-        SongModel currentSong = playlistProvider.allSongs[playlistProvider.currentSongIndex!];
+        
+        final currentSong = playlistProvider.allSongs[currentSongIndex];
 
         return GestureDetector(
           onTap: () {
@@ -29,24 +33,27 @@ class NowPlayingBar extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                            thumbShape:
-                                RoundSliderThumbShape(enabledThumbRadius: 6)),
-                        child: Slider(
-                            min: 0,
-                            max: playlistProvider.totalDuration.inSeconds.toDouble(),
-                            activeColor: Colors.green,
-                            inactiveColor: Theme.of(context).colorScheme.inversePrimary,
-                            value: playlistProvider.currentDuration.inSeconds.toDouble(),
-                            onChanged: (double double) {
-
-                            },
-                            onChangeEnd: (double double){
-                              playlistProvider.seek(Duration(seconds: double.toInt()));
-                            },
-                            ),
+                ValueListenableBuilder<Duration>(
+                  valueListenable: playlistProvider.currentDurationNotifier,
+                  builder: (context, currentDuration, child) {
+                    return SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6)
                       ),
+                      child: Slider(
+                        min: 0,
+                        max: playlistProvider.totalDuration.inSeconds.toDouble(),
+                        activeColor: Colors.green,
+                        inactiveColor: Theme.of(context).colorScheme.inversePrimary,
+                        value: currentDuration.inSeconds.toDouble(),
+                        onChanged: (double value) {},
+                        onChangeEnd: (double value) {
+                          playlistProvider.seek(Duration(seconds: value.toInt()));
+                        },
+                      ),
+                    );
+                  },
+                ),
                 Expanded(
                   child: Row(
                     children: [
@@ -82,11 +89,14 @@ class NowPlayingBar extends StatelessWidget {
                         icon: Icon(Icons.skip_previous),
                         onPressed: playlistProvider.playPreviousTrack,
                       ),
-                      IconButton(
-                        icon: Icon(playlistProvider.isPlaying
-                            ? Icons.pause
-                            : Icons.play_arrow),
-                        onPressed: playlistProvider.pauseOrResume,
+                      ValueListenableBuilder<bool>(
+                        valueListenable: playlistProvider.isPlayingNotifier,
+                        builder: (context, isPlaying, child) {
+                          return IconButton(
+                            icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
+                            onPressed: playlistProvider.pauseOrResume,
+                          );
+                        },
                       ),
                       IconButton(
                         icon: Icon(Icons.skip_next),
