@@ -31,9 +31,12 @@ class SongScreen extends StatelessWidget {
                     onPressed: () => Navigator.pop(context),
                     icon: Icon(Icons.arrow_back),
                   ),
-                  Spacer(),
-                  Text("Now Playing"),
-                  SizedBox(
+                  const Spacer(),
+                  const Text(
+                    "Now Playing",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(
                     width: 8,
                   ),
                   // LottieBuilder.network(
@@ -44,7 +47,12 @@ class SongScreen extends StatelessWidget {
                   Lottie.asset("asset/animation/musicanimation.json",
                       width: 40, height: 40),
                   Spacer(),
-                  IconButton(onPressed: () {}, icon: Icon(Icons.menu)),
+                  IconButton(
+                      onPressed: () {
+                        // showScaffoldMessage(context: context, message: "Equilizer is coming soon");
+                        showBottomCenteredMessage(context, "Hosla kis chez ki jaldi ha");
+                      },
+                      icon: Icon(Icons.equalizer)),
                 ],
               ),
             ),
@@ -52,6 +60,30 @@ class SongScreen extends StatelessWidget {
             Expanded(
               flex: 2,
               child: CustomShadowBox(
+                swipeWidget: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: MediaQuery.of(context).size.width * 0.85,
+                    maxWidth: MediaQuery.of(context).size.width * 0.85,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text("Team is working on lyrics stay tuned"),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            Lottie.asset("asset/animation/loaderAnimation.json",
+                                width: 40, height: 40),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ),
                 child: ValueListenableBuilder<int?>(
                   valueListenable: playlistProvider.currentSongIndexNotifier,
                   builder: (context, currentIndex, child) {
@@ -66,10 +98,13 @@ class SongScreen extends StatelessWidget {
                           type: ArtworkType.AUDIO,
                           nullArtworkWidget: LottieBuilder.asset(
                             "asset/animation/play_animation.json",
-                            width: 250,height: 250,
+                            width: 250,
+                            height: 250,
                           ),
                         ),
-                        SizedBox(height: 24,),
+                        SizedBox(
+                          height: 24,
+                        ),
                         ConstrainedBox(
                           constraints: BoxConstraints(
                             minWidth: MediaQuery.of(context).size.width * 0.85,

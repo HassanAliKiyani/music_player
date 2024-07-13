@@ -3,13 +3,17 @@ import 'dart:async';
 
 class CustomShadowBox extends StatefulWidget {
   final Widget child;
-  const CustomShadowBox({Key? key, required this.child}) : super(key: key);
+  final Widget swipeWidget;
+  const CustomShadowBox(
+      {Key? key, required this.child, required this.swipeWidget})
+      : super(key: key);
 
   @override
   _CustomShadowBoxState createState() => _CustomShadowBoxState();
 }
 
-class _CustomShadowBoxState extends State<CustomShadowBox> with SingleTickerProviderStateMixin {
+class _CustomShadowBoxState extends State<CustomShadowBox>
+    with SingleTickerProviderStateMixin {
   final List<Color> colors = [
     Colors.orange,
     Colors.green,
@@ -25,6 +29,7 @@ class _CustomShadowBoxState extends State<CustomShadowBox> with SingleTickerProv
   late Animation<double> _animation;
   int currentColorIndex = 0;
   int nextColorIndex = 1;
+  bool swipeLeft = false;
 
   @override
   void initState() {
@@ -62,31 +67,50 @@ class _CustomShadowBoxState extends State<CustomShadowBox> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                offset: const Offset(-4, -4),
-                color: Color.lerp(colors[currentColorIndex], colors[nextColorIndex], _animation.value)!,
-                blurRadius: 15,
-              ),
-              BoxShadow(
-                offset: const Offset(4, 4),
-                color: Color.lerp(colors[currentColorIndex], colors[nextColorIndex], _animation.value)!,
-                blurRadius: 15,
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(12),
-          child: child,
-        );
+    return GestureDetector(
+      onPanUpdate: (details) {
+        // Swiping in right direction.
+        if (details.delta.dx > 0) {
+          setState(() {
+            swipeLeft = false;
+          });
+        }
+
+        // Swiping in left direction.
+        if (details.delta.dx < 0) {
+          setState(() {
+            swipeLeft = true;
+          });
+        }
       },
-      child: widget.child,
+      child: AnimatedBuilder(
+        animation: _animation,
+        builder: (context, child) {
+          return Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  offset: const Offset(-4, -4),
+                  color: Color.lerp(colors[currentColorIndex],
+                      colors[nextColorIndex], _animation.value)!,
+                  blurRadius: 15,
+                ),
+                BoxShadow(
+                  offset: const Offset(4, 4),
+                  color: Color.lerp(colors[currentColorIndex],
+                      colors[nextColorIndex], _animation.value)!,
+                  blurRadius: 15,
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(12),
+            child: child,
+          );
+        },
+        child: swipeLeft?widget.swipeWidget: widget.child,
+      ),
     );
   }
 }
