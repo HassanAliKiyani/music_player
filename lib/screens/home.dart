@@ -4,7 +4,6 @@ import 'package:music_player/components/now_playing_bar.dart';
 import 'package:music_player/models/playlistProvider.dart';
 import 'package:music_player/screens/song_screen.dart';
 import 'package:on_audio_query/on_audio_query.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 import '../components/custom_songtile.dart';

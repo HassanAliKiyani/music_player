@@ -1,3 +1,4 @@
+import 'package:equalizer_flutter_custom/equalizer_flutter_custom.dart';
 import 'package:flutter/material.dart';
 import 'package:music_player/components/custom_shadow_box.dart';
 import 'package:music_player/models/playlistProvider.dart';
@@ -51,6 +52,7 @@ class SongScreen extends StatelessWidget {
                       onPressed: () {
                         // showScaffoldMessage(context: context, message: "Equilizer is coming soon");
                         showBottomCenteredMessage(context, "Hosla kis chez ki jaldi ha");
+                       
                       },
                       icon: Icon(Icons.equalizer)),
                 ],

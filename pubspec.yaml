@@ -37,11 +37,12 @@ dependencies:
   cupertino_icons: ^1.0.6
   provider: ^6.1.2
   get: ^4.6.6
-  permission_handler: ^11.3.1
   on_audio_query: ^2.9.0
   audioplayers: ^6.0.0
   just_audio: ^0.9.38
   lottie: ^3.1.2
+  equalizer_flutter_custom: ^0.0.3
+  just_audio_background: ^0.0.1-beta.13
 
 dev_dependencies:
   flutter_test:
